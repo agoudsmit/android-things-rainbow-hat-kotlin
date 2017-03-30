@@ -34,6 +34,7 @@ class MainActivity : Activity() {
 
     val shots = IntArray(RainbowHat.LEDSTRIP_LENGTH)
     val game = PlayActivity()
+    val ledstrip by lazy { game.ledStrip }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,7 +125,7 @@ class MainActivity : Activity() {
     }
 
     private fun updateDisplay() {
-        val ledstrip = RainbowHat.openLedStrip()
+
         ledstrip.setBrightness(1)
         val display = IntArray(RainbowHat.LEDSTRIP_LENGTH)
         for (i in display.indices) {
