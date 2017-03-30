@@ -9,8 +9,8 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
-import com.google.android.things.contrib.driver.button.Button
 import com.google.android.things.contrib.driver.bmx280.Bmx280
+import com.google.android.things.contrib.driver.button.Button
 import com.google.android.things.contrib.driver.ht16k33.Ht16k33
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.google.android.things.pio.Gpio
@@ -19,10 +19,12 @@ import com.google.firebase.database.*
 
 
 class MainActivity : Activity() {
-
     var redLed: Gpio? = null
-    var greenLed: Gpio? = null
-    var blueLed: Gpio? = null
+
+
+    var greenLed : Gpio? = null
+    var blueLed : Gpio? = null
+
 
     var buttonA: Button? = null
     var buttonB: Button? = null
