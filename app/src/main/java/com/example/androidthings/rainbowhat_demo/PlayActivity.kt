@@ -21,7 +21,7 @@ class PlayActivity  {
 
     var otherShipIndex: Int? = null
 
-    val ledStrip by lazy { RainbowHat.openLedStrip() }
+    val ledStrip = RainbowHat.openLedStrip()
     val leds = IntArray(RainbowHat.LEDSTRIP_LENGTH)
 
 

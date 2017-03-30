@@ -34,7 +34,7 @@ class MainActivity : Activity() {
 
     val shots = IntArray(RainbowHat.LEDSTRIP_LENGTH)
     val game = PlayActivity()
-    val ledstrip by lazy { game.ledStrip }
+    val ledstrip = game.ledStrip
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -134,7 +134,6 @@ class MainActivity : Activity() {
         display[position] = Color.YELLOW
         ledstrip.write(display)
         ledstrip.write(display)
-        ledstrip.close()
     }
 
     fun moveRight() {
