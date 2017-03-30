@@ -1,18 +1,28 @@
 package com.example.androidthings.rainbowhat_demo
 
 import android.app.Activity
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import com.google.android.things.contrib.driver.apa102.Apa102
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.google.firebase.database.*
 
 class PlayActivity : Activity() {
 
     val player = 1
+    val otherPlayer = when(player) {
+        1 -> 2
+        else -> 1
+    }
+
     private val mDatabase by lazy { FirebaseDatabase.getInstance() }
     private val loseRef by lazy { mDatabase.getReference("loser") }
 
     var otherShipIndex: Int? = null
+
+    val ledStrip by lazy { RainbowHat.openLedStrip() }
+    val leds = IntArray(RainbowHat.LEDSTRIP_LENGTH)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +34,7 @@ class PlayActivity : Activity() {
     fun initFirebase() {
         // Wij zijn p1
 
-        val shots = mDatabase.getReference("p$player/shots")
+        val shots = mDatabase.getReference("p$otherPlayer/shots")
         shots.addChildEventListener(object : ChildEventListener {
             override fun onCancelled(p0: DatabaseError?) {
             }
@@ -44,7 +54,7 @@ class PlayActivity : Activity() {
         })
 
 
-        val shipIndexRef = mDatabase.getReference("p$player/shipIndex")
+        val shipIndexRef = mDatabase.getReference("p$otherPlayer/shipIndex")
         shipIndexRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if(dataSnapshot.exists()) {
@@ -68,9 +78,15 @@ class PlayActivity : Activity() {
 
                     if (loser == player) {
                         // I lost!
+                        loseSequence()
                     } else {
                         // I won!
+                        winSequence()
                     }
+                }
+                else {
+                    ledStrip.write( leds.map { Color.BLACK }.toIntArray() )
+                    ledStrip.write( leds.map { Color.BLACK }.toIntArray() )
                 }
             }
 
@@ -94,6 +110,23 @@ class PlayActivity : Activity() {
     fun lose() {
         loseRef.setValue(player)
     }
+
+    fun loseSequence() {
+        Log.i(TAG, "We lost!")
+
+        ledStrip.write( leds.map { Color.RED }.toIntArray() )
+        ledStrip.write( leds.map { Color.RED }.toIntArray() )
+    }
+
+    fun winSequence() {
+        Log.i(TAG, "We won!")
+
+        ledStrip.write( leds.map { Color.GREEN }.toIntArray() )
+        ledStrip.write( leds.map { Color.GREEN }.toIntArray() )
+    }
+
+    private fun rgb(R: Int,G: Int,B: Int) = (R and 0xff shl 16) or (G and 0xff shl 16) or (B and 0xff)
+
 
     fun playStartupSound() {
         // Play a note on the buzzer.
