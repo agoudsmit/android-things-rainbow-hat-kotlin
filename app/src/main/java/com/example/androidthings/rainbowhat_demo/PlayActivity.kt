@@ -8,7 +8,7 @@ import com.google.android.things.contrib.driver.apa102.Apa102
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.google.firebase.database.*
 
-class PlayActivity : Activity() {
+class PlayActivity  {
 
     val player = 1
     val otherPlayer = when(player) {
@@ -24,14 +24,10 @@ class PlayActivity : Activity() {
     val ledStrip by lazy { RainbowHat.openLedStrip() }
     val leds = IntArray(RainbowHat.LEDSTRIP_LENGTH)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
 
-        initFirebase()
-    }
 
     fun initFirebase() {
+        Log.d("", "init firebase")
         // Wij zijn p1
 
         val shots = mDatabase.getReference("p$otherPlayer/shots")
@@ -59,14 +55,14 @@ class PlayActivity : Activity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if(dataSnapshot.exists()) {
                     otherShipIndex = dataSnapshot.getValue(Int::class.java)
-                    Log.d(TAG, "Other ship index = $otherShipIndex")
+                    Log.d("", "Other ship index = $otherShipIndex")
                     playStartupSound()
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
                 // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException())
+                Log.w("", "Failed to read value.", error.toException())
             }
         })
 
@@ -74,7 +70,7 @@ class PlayActivity : Activity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if(dataSnapshot.exists()) {
                     val loser = dataSnapshot.getValue(Int::class.java)
-                    Log.d(TAG, "Loser = $loser")
+                    Log.d("", "Loser = $loser")
 
                     if (loser == player) {
                         // I lost!
@@ -92,7 +88,7 @@ class PlayActivity : Activity() {
 
             override fun onCancelled(error: DatabaseError) {
                 // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException())
+                Log.w("", "Failed to read value.", error.toException())
             }
         })
     }
@@ -102,7 +98,7 @@ class PlayActivity : Activity() {
         val shotIndex = dataSnapshot.getValue(Int::class.java)
         if (otherShipIndex == shotIndex) {
             // Hit!
-            Log.i(TAG, "Hit!")
+            Log.i("", "Hit!")
             lose()
         }
     }
@@ -112,14 +108,14 @@ class PlayActivity : Activity() {
     }
 
     fun loseSequence() {
-        Log.i(TAG, "We lost!")
+        Log.i("", "We lost!")
 
         ledStrip.write( leds.map { Color.RED }.toIntArray() )
         ledStrip.write( leds.map { Color.RED }.toIntArray() )
     }
 
     fun winSequence() {
-        Log.i(TAG, "We won!")
+        Log.i("", "We won!")
 
         ledStrip.write( leds.map { Color.GREEN }.toIntArray() )
         ledStrip.write( leds.map { Color.GREEN }.toIntArray() )
@@ -141,7 +137,9 @@ class PlayActivity : Activity() {
         buzzer.close()
     }
 
-    companion object {
-        private val TAG = MainActivity::class.java!!.getSimpleName()
+    fun fire(pos: Int) {
+        mDatabase.getReference("p$player/shots")
+                .setValue(pos,pos)
     }
+
 }

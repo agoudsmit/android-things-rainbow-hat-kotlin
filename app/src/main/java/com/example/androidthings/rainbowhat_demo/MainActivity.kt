@@ -33,7 +33,7 @@ class MainActivity : Activity() {
     var position: Int = 0
 
     val shots = IntArray(RainbowHat.LEDSTRIP_LENGTH)
-
+    val game = PlayActivity()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,10 +48,10 @@ class MainActivity : Activity() {
             e.printStackTrace()
             Log.e(TAG, e.message)
         }
+
+        game.initFirebase()
     }
 
-
-//
 
     fun bootSequence() {
         Log.d(TAG, "Hello!!! from Android Things in Kotlin!!!!")
@@ -126,6 +126,8 @@ class MainActivity : Activity() {
         Log.d(TAG, "firing at: " + position)
         shots[position] = Color.BLUE
         updateDisplay()
+
+        game.fire(position)
     }
 
     private fun updateDisplay() {
