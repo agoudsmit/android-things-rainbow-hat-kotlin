@@ -8,9 +8,9 @@ import com.google.firebase.database.*
 
 class PlayActivity : Activity() {
 
-
+    val player = 1
     private val mDatabase by lazy { FirebaseDatabase.getInstance() }
-    var fbMode : DatabaseReference? = null
+    private val loseRef by lazy { mDatabase.getReference("loser") }
 
     var otherShipIndex: Int? = null
 
@@ -24,7 +24,7 @@ class PlayActivity : Activity() {
     fun initFirebase() {
         // Wij zijn p1
 
-        val shots = mDatabase.getReference("p2/shots")
+        val shots = mDatabase.getReference("p$player/shots")
         shots.addChildEventListener(object : ChildEventListener {
             override fun onCancelled(p0: DatabaseError?) {
             }
@@ -36,12 +36,7 @@ class PlayActivity : Activity() {
             }
 
             override fun onChildAdded(dataSnapshot: DataSnapshot, p1: String?) {
-                val otherShipIndex = otherShipIndex ?: return
-                val shotIndex = dataSnapshot.getValue(Int::class.java)
-                if (otherShipIndex == shotIndex) {
-                    // Hit!
-                    Log.i(TAG, "Hit!")
-                }
+                shoot(dataSnapshot)
             }
 
             override fun onChildRemoved(p0: DataSnapshot?) {
@@ -49,7 +44,7 @@ class PlayActivity : Activity() {
         })
 
 
-        val shipIndexRef = mDatabase.getReference("p2/shipIndex")
+        val shipIndexRef = mDatabase.getReference("p$player/shipIndex")
         shipIndexRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if(dataSnapshot.exists()) {
@@ -64,8 +59,41 @@ class PlayActivity : Activity() {
                 Log.w(TAG, "Failed to read value.", error.toException())
             }
         })
+
+        loseRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                if(dataSnapshot.exists()) {
+                    val loser = dataSnapshot.getValue(Int::class.java)
+                    Log.d(TAG, "Loser = $loser")
+
+                    if (loser == player) {
+                        // I lost!
+                    } else {
+                        // I won!
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read value.", error.toException())
+            }
+        })
     }
 
+    private fun shoot(dataSnapshot: DataSnapshot) {
+        val otherShipIndex = otherShipIndex ?: return
+        val shotIndex = dataSnapshot.getValue(Int::class.java)
+        if (otherShipIndex == shotIndex) {
+            // Hit!
+            Log.i(TAG, "Hit!")
+            lose()
+        }
+    }
+
+    fun lose() {
+        loseRef.setValue(player)
+    }
 
     fun playStartupSound() {
         // Play a note on the buzzer.
