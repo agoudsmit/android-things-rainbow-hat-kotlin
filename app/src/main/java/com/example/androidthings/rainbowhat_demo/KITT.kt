@@ -37,11 +37,13 @@ class Kitt(val displayText : String, val color : Int) : Behavior(), Closeable {
      Commit the current state to the hardware
      */
 
+    fun rgb(R: Int,G: Int,B: Int) = (R and 0xff shl 16) or (G and 0xff shl 16) or (B and 0xff)
+
+
     // for red, shift left 16 bits
     override fun update() {
-
         // https://developer.android.com/reference/android/graphics/Color.html
-        ledStrip.write(state.map { it shl (color*8) }.toIntArray())
+        ledStrip.write(state.map { it shl (rgb(255,0,0)) }.toIntArray())
     }
 
 

@@ -1,30 +1,36 @@
 package com.example.androidthings.rainbowhat_demo
 
 import android.app.Activity
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import com.google.android.things.contrib.driver.apa102.Apa102
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.google.firebase.database.*
 
-class PlayActivity : Activity() {
+class PlayActivity  {
 
     val player = 1
+    val otherPlayer = when(player) {
+        1 -> 2
+        else -> 1
+    }
+
     private val mDatabase by lazy { FirebaseDatabase.getInstance() }
     private val loseRef by lazy { mDatabase.getReference("loser") }
 
     var otherShipIndex: Int? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
+    val ledStrip by lazy { RainbowHat.openLedStrip() }
+    val leds = IntArray(RainbowHat.LEDSTRIP_LENGTH)
 
-        initFirebase()
-    }
+
 
     fun initFirebase() {
+        Log.d("", "init firebase")
         // Wij zijn p1
 
-        val shots = mDatabase.getReference("p$player/shots")
+        val shots = mDatabase.getReference("p$otherPlayer/shots")
         shots.addChildEventListener(object : ChildEventListener {
             override fun onCancelled(p0: DatabaseError?) {
             }
@@ -44,19 +50,19 @@ class PlayActivity : Activity() {
         })
 
 
-        val shipIndexRef = mDatabase.getReference("p$player/shipIndex")
+        val shipIndexRef = mDatabase.getReference("p$otherPlayer/shipIndex")
         shipIndexRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if(dataSnapshot.exists()) {
                     otherShipIndex = dataSnapshot.getValue(Int::class.java)
-                    Log.d(TAG, "Other ship index = $otherShipIndex")
+                    Log.d("", "Other ship index = $otherShipIndex")
                     playStartupSound()
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
                 // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException())
+                Log.w("", "Failed to read value.", error.toException())
             }
         })
 
@@ -64,19 +70,25 @@ class PlayActivity : Activity() {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 if(dataSnapshot.exists()) {
                     val loser = dataSnapshot.getValue(Int::class.java)
-                    Log.d(TAG, "Loser = $loser")
+                    Log.d("", "Loser = $loser")
 
                     if (loser == player) {
                         // I lost!
+                        loseSequence()
                     } else {
                         // I won!
+                        winSequence()
                     }
+                }
+                else {
+                    ledStrip.write( leds.map { Color.BLACK }.toIntArray() )
+                    ledStrip.write( leds.map { Color.BLACK }.toIntArray() )
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
                 // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException())
+                Log.w("", "Failed to read value.", error.toException())
             }
         })
     }
@@ -86,7 +98,7 @@ class PlayActivity : Activity() {
         val shotIndex = dataSnapshot.getValue(Int::class.java)
         if (otherShipIndex == shotIndex) {
             // Hit!
-            Log.i(TAG, "Hit!")
+            Log.i("", "Hit!")
             lose()
         }
     }
@@ -94,6 +106,23 @@ class PlayActivity : Activity() {
     fun lose() {
         loseRef.setValue(player)
     }
+
+    fun loseSequence() {
+        Log.i("", "We lost!")
+
+        ledStrip.write( leds.map { Color.RED }.toIntArray() )
+        ledStrip.write( leds.map { Color.RED }.toIntArray() )
+    }
+
+    fun winSequence() {
+        Log.i("", "We won!")
+
+        ledStrip.write( leds.map { Color.GREEN }.toIntArray() )
+        ledStrip.write( leds.map { Color.GREEN }.toIntArray() )
+    }
+
+    private fun rgb(R: Int,G: Int,B: Int) = (R and 0xff shl 16) or (G and 0xff shl 16) or (B and 0xff)
+
 
     fun playStartupSound() {
         // Play a note on the buzzer.
@@ -108,7 +137,9 @@ class PlayActivity : Activity() {
         buzzer.close()
     }
 
-    companion object {
-        private val TAG = MainActivity::class.java!!.getSimpleName()
+    fun fire(pos: Int) {
+        mDatabase.getReference("p$player/shots")
+                .setValue(pos,pos)
     }
+
 }
