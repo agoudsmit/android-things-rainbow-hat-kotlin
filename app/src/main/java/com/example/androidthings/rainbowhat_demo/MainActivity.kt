@@ -1,5 +1,3 @@
-
-
 package com.example.androidthings.rainbowhat_demo
 
 import android.app.Activity
@@ -23,66 +21,40 @@ import com.google.firebase.database.*
 class MainActivity : Activity() {
     var redLed: Gpio? = null
 
+
     var greenLed : Gpio? = null
     var blueLed : Gpio? = null
 
-    var buttonA : Button? = null
-    var buttonB : Button? = null
-    var buttonC : Button? = null
 
+    var buttonA: Button? = null
+    var buttonB: Button? = null
+    var buttonC: Button? = null
 
-    var mode : Behavior? = null
-    var fbMode : DatabaseReference? = null
+    var position: Int = 0
 
-    private var mDatabase: FirebaseDatabase? = null
+    val shots = IntArray(RainbowHat.LEDSTRIP_LENGTH)
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
-
-        initFirebase()
-
         try {
             bootSequence()
             initButtons()
-
+            for (i in shots.indices) {
+                shots[i] = 0
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, e.message)
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "onDestroy")
-        buttonA!!.close()
-        buttonB!!.close()
-        buttonC!!.close()
 
-        mode!!.close()
-    }
-
-    fun initFirebase() {
-        mDatabase = FirebaseDatabase.getInstance()
-        fbMode = mDatabase!!.getReference("mode")
-        fbMode!!.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val value = dataSnapshot.getValue(Long::class.java)
-                Log.d(TAG, "Value is: " + value)
-
-                handleStateChange("test", value.toInt())
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException())
-            }
-        })
-    }
+//
 
     fun bootSequence() {
         Log.d(TAG, "Hello!!! from Android Things in Kotlin!!!!")
-
 
         val manager = PeripheralManagerService()
         val portList = manager.getGpioList()
@@ -93,8 +65,9 @@ class MainActivity : Activity() {
         }
 
         playStartupSound()
-        rainbow(on = false)
-        mode = Kitt("    ", 0)
+        updateDisplay()
+        //rainbow(on = false)
+        // mode = Kitt("    ", 0)
     }
 
     fun playStartupSound() {
@@ -117,7 +90,6 @@ class MainActivity : Activity() {
         greenLed = RainbowHat.openLed(RainbowHat.LED_GREEN)
         greenLed!!.value = false
 
-
         blueLed = RainbowHat.openLed(RainbowHat.LED_BLUE)
         blueLed!!.value = false
 
@@ -126,97 +98,89 @@ class MainActivity : Activity() {
             redLed!!.value = pressed
 
             if (pressed) {
-                fbMode!!.setValue(2)
+                moveRight()
+                //fbMode!!.setValue(2)
             }
         }
 
         buttonB = RainbowHat.openButton(RainbowHat.BUTTON_B)
         buttonB!!.setOnButtonEventListener { button, pressed ->
             greenLed!!.value = pressed
-
+//
             if (pressed) {
-                fbMode!!.setValue(1)
+                fireAtPosition()
+                //fbMode!!.setValue(1)
             }
         }
-
 
         buttonC = RainbowHat.openButton(RainbowHat.BUTTON_C)
         buttonC!!.setOnButtonEventListener { button, pressed ->
             blueLed!!.value = pressed
             if (pressed) {
-                fbMode!!.setValue(0)
+                //  fbMode!!.setValue(0)
             }
-
         }
     }
 
-    fun handleStateChange(text : String, color: Int) {
-        mode?.close()
-        mode = Kitt(text, color)
-        mode!!.start()
+    private fun fireAtPosition() {
+        Log.d(TAG, "firing at: " + position)
+        shots[position] = Color.BLUE
+        updateDisplay()
+    }
+
+    private fun updateDisplay() {
+        val ledstrip = RainbowHat.openLedStrip()
+        ledstrip.setBrightness(1)
+        val display = IntArray(RainbowHat.LEDSTRIP_LENGTH)
+        for (i in display.indices) {
+            display[i] = shots[i]
+        }
+        display[position] = Color.YELLOW
+        ledstrip.write(display)
+        ledstrip.close()
+    }
+
+    fun moveRight() {
+        Log.d(TAG, "moving to: " + position)
+        position++
+
+        if (position >= RainbowHat.LEDSTRIP_LENGTH) {
+            position = 0
+        }
+
+        updateDisplay();
     }
 
     // temp sensor always seems to report the same value of 26.711567
     // TODO: test using the python lib
-    fun displayCurrentTemp() {
-        // Log the current temperature
-        val sensor = RainbowHat.openSensor()
-        sensor.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X)
-        Log.d(TAG, "temperature:" + sensor.readTemperature())
-        // Close the device when done.
-
-        // Display a string on the segment display.
-        val segment = RainbowHat.openDisplay()
-        segment.setBrightness(Ht16k33.HT16K33_BRIGHTNESS_MAX)
-        segment.display(Math.round(sensor.readTemperature()))
-        segment.setEnabled(true)
-        // Close the device when done.
-        segment.close()
-        sensor.close()
-    }
-
-
-    fun rainbow(on : Boolean) {
-        // Light up the rainbow
-        val ledstrip = RainbowHat.openLedStrip()
-        ledstrip.setBrightness(1)
-        val rainbow = IntArray(RainbowHat.LEDSTRIP_LENGTH)
-        for (i in rainbow.indices) {
-            rainbow[i] = if (!on) 0 else Color.HSVToColor(254, arrayOf(i * 360f / RainbowHat.LEDSTRIP_LENGTH , 1f, 1f ).toFloatArray() )
-        }
-        ledstrip.write(rainbow)
-        // Close the device when done.
-        ledstrip.close()
-    }
+//    fun displayCurrentTemp() {
+//        // Log the current temperature
+//        val sensor = RainbowHat.openSensor()
+//        sensor.setTemperatureOversampling(Bmx280.OVERSAMPLING_1X)
+//        Log.d(TAG, "temperature:" + sensor.readTemperature())
+//        // Close the device when done.
+//
+//        // Display a string on the segment display.
+//        val segment = RainbowHat.openDisplay()
+//        segment.setBrightness(Ht16k33.HT16K33_BRIGHTNESS_MAX)
+//        segment.display(Math.round(sensor.readTemperature()))
+//        segment.setEnabled(true)
+//        // Close the device when done.
+//        segment.close()
+//        sensor.close()
+//    }
 
 
-
-    fun monitorTemp() {
-        // Continously report temperature.
-        val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-
-        var cb = object: SensorManager.DynamicSensorCallback() {
-
-            override fun onDynamicSensorConnected(sensor: Sensor) {
-                if (sensor.getType() == Sensor.TYPE_AMBIENT_TEMPERATURE) {
-                    sensorManager.registerListener(
-                            object: SensorEventListener {
-                                override fun onSensorChanged(event: SensorEvent) {
-                                    Log.i(TAG, "sensor changed: " + event.values[0])
-                                }
-                                override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-                                    Log.i(TAG, "accuracy changed: " + accuracy)
-                                }
-                            },
-                            sensor, SensorManager.SENSOR_DELAY_NORMAL);
-                }
-            }
-        }
-
-        sensorManager.registerDynamicSensorCallback( cb)
+    override fun onStop() {
+        super.onDestroy()
+        Log.d(TAG, "onDestroy")
+        buttonA!!.close()
+        buttonB!!.close()
+        buttonC!!.close()
     }
 
     companion object {
         private val TAG = MainActivity::class.java!!.getSimpleName()
     }
 }
+
