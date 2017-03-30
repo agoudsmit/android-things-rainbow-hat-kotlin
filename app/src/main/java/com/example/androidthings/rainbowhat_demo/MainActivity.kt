@@ -37,21 +37,19 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
+        Log.d(TAG, "onCreate sinkahat")
         try {
             bootSequence()
             initButtons()
             for (i in shots.indices) {
                 shots[i] = 0
             }
+            updateDisplay()
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, e.message)
         }
     }
-
-
-//
 
     fun bootSequence() {
         Log.d(TAG, "Hello!!! from Android Things in Kotlin!!!!")
@@ -63,11 +61,6 @@ class MainActivity : Activity() {
         } else {
             Log.i(TAG, "List of available ports: " + portList)
         }
-
-        playStartupSound()
-        updateDisplay()
-        //rainbow(on = false)
-        // mode = Kitt("    ", 0)
     }
 
     fun playStartupSound() {
@@ -106,10 +99,9 @@ class MainActivity : Activity() {
         buttonB = RainbowHat.openButton(RainbowHat.BUTTON_B)
         buttonB!!.setOnButtonEventListener { button, pressed ->
             greenLed!!.value = pressed
-//
+ Log.d(TAG, "pressed  at: " + position+" "+pressed )
             if (pressed) {
                 fireAtPosition()
-                //fbMode!!.setValue(1)
             }
         }
 
@@ -117,7 +109,6 @@ class MainActivity : Activity() {
         buttonC!!.setOnButtonEventListener { button, pressed ->
             blueLed!!.value = pressed
             if (pressed) {
-                //  fbMode!!.setValue(0)
             }
         }
     }
@@ -126,6 +117,7 @@ class MainActivity : Activity() {
         Log.d(TAG, "firing at: " + position)
         shots[position] = Color.BLUE
         updateDisplay()
+        playStartupSound()
     }
 
     private fun updateDisplay() {
@@ -137,17 +129,16 @@ class MainActivity : Activity() {
         }
         display[position] = Color.YELLOW
         ledstrip.write(display)
+        ledstrip.write(display)
         ledstrip.close()
     }
 
     fun moveRight() {
-        Log.d(TAG, "moving to: " + position)
         position++
-
         if (position >= RainbowHat.LEDSTRIP_LENGTH) {
             position = 0
         }
-
+        Log.d(TAG, "moving to: " + position)
         updateDisplay();
     }
 
