@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "699186179401",
+    "firebase_url": "https://sink-a-hat.firebaseio.com",
+    "project_id": "sink-a-hat",
+    "storage_bucket": "sink-a-hat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:699186179401:android:d1537544bf15be9c",
+        "android_client_info": {
+          "package_name": "com.example.androidthings.rainbowhat_demo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "699186179401-3iff5es8hacv7eg0sns6lsshk41i93js.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.androidthings.rainbowhat_demo",
+            "certificate_hash": "2513c99b179693583accb924e52d6d6a54630dc7"
+          }
+        },
+        {
+          "client_id": "699186179401-2eg7jup0ohie05hoadub1fvn523il40r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDmp858LRQVAEwOTs2Wv1GVXl5R_ZbJMI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "699186179401-2eg7jup0ohie05hoadub1fvn523il40r.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
